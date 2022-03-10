@@ -1,0 +1,59 @@
+/*
+* Macro to measure egg size in multiple images in a folder/subfolders.
+*/
+
+#@File(label = “Input directory”, style = “directory”) input
+#@File(label = “Output directory”, style = “directory”) output
+#@String(label = “File suffix”, value = “.tif”) suffix
+#@float(label = “Minimum size”) minSize
+#@float(label = “Known Distance”) knownDist
+#@String(label = “Unit of Known Distance”) unit
+
+processFolder(input);
+	
+// function to scan folders/subfolders/files to find files with correct suffix
+function processFolder(input) {
+	list = getFileList(input);
+	for (i = 0; i < list.length; i++) {
+		if(File.isDirectory(input + File.separator + list[i]))
+			processFolder(“” + input + File.separator + list[i]);
+		if(endsWith(list[i], suffix))
+			processFile(input, output, list[i]);
+	}
+	//saves results for all images in a single file
+	saveAs(“Results”, output + “/All_Results.csv”); 
+}
+
+function processFile(input, output, file) {
+	//setBatchMode(true); // prevents image windows from opening while the script is running
+	// open image using Bio-Formats; //Don’t do this -Dariel
+	//run(“Bio-Formats”, “open=[” + input + “/” + file +“] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT”);
+  open(file);
+  run(“8-bit”);
+  id = getImageID(); // get original image id
+	run(“Duplicate...“, ” “); // duplicate original image and work on the copy
+	
+	// create binary image
+	waitForUser(“Measure 10 squares of mm Paper from line outside of border to theline inside.“);
+	run(“Set Scale...“, “distance=1656.0679 known=knownDist unit=unit”);
+	waitForUser(“Draw Rectangle With Eggs”);
+	run(“Duplicate...“, ” “);
+	setAutoThreshold(“Default”);
+	//run(“Threshold...“);
+	run(“Create Mask”);
+	// save current binary image
+	save(output + “/Binary_OUTPUT_” + file);
+	
+	run(“Analyze Particles...“, “size=” + minSize + “-Infinity exclude add”);
+  selectImage(id); // activate original image
+  roiManager(“Show All with labels”); // overlay ROIs
+	roiManager(“Deselect”);
+	roiManager(“Measure”); // measure on original image
+	
+	// save ROIs for current image
+	roiManager(“Deselect”);
+	roiManager(“Save”, output+ “/” + file + “_ROI.zip”); // saves Rois zip file
+	roiManager(“Deselect”);
+	roiManager(“Delete”); // clear ROI Manager for next image
+	close(“*”)
+}
