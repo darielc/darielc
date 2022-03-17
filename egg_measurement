@@ -26,42 +26,67 @@ function processFolder(input) {
 
 function processFile(input, output, file) {
 	//setBatchMode(true); // prevents image windows from opening while the script is running
-	// open image using Bio-Formats; //Don't do this -Dariel
+	//open image using Bio-Formats; //Don't do this -Dariel
 	//run("Bio-Formats", "open=[" + input + "/" + file +"] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
     	open(file);
+    	file = File.nameWithoutExtension;
    	run("8-bit");
     	id = getImageID(); // get original image id
 	run("Duplicate...", " "); // duplicate original image and work on the copy
 	
-	// create binary image
+	//Measure scale bar and Duplicate picture with just eggs
 	waitForUser("Measure 10 squares of mm Paper from line outside of border to the line inside.");
 	getLine(x1, y1, x2, y2, lineWidth);
 	lineLength = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
 	run("Set Scale...", "distance=" + lineLength + " known=knownDist pixel=1 unit=unit");
 	waitForUser("Draw Rectangle With Eggs");
 	run("Duplicate...", " ");
+	rename(file);
 	setAutoThreshold("Default");
 	//run("Threshold...");
-	run("Create Mask");
+	//run("Create Mask");
 	//run("Watershed");
-	// save current binary image
-	save(output + "/Binary_OUTPUT_" + file);
-	
-	run("Analyze Particles...", "size=" + minSize + "-Infinity show=Outlines display exclude add");
-	// save current binary image
-	save(output + "/Binary_OUTPUT_" + file);
+	//save current binary image
+	//save(output + "/Binary_OUTPUT_" + file);
+
+	x = nResults;
+	print(x);
+	//Before running Analyze Particles make sure Set Measurements has "Area" and "Display label" on
+	run("Analyze Particles...", "size=" + minSize + "-0.1 show=Outlines display exclude add");
+
+	//Stop code if no values were retreived
+	if (x == nResults) {
+		close();
+		close();
+		/* 
+		 *  Run inverse if image makes backround be thresholded instead of eggs
+		 *  Do it manually order:
+		 *  1) Draw line and set scale manually if image is too zoomed in
+		 *  2) Create rectangle with eggs and duplicate image; TAKE OFF "-2.jpg" IN DUPLICATE NAME
+		 *  3) Run Threshold image manually
+		 *  4) Run Analyze Particles manually
+		 */
+		waitForUser("Do it manually");
+		save(output + "/" + file  + "_Outline");
+	} else {
+		save(output + "/" + file  + "_Outline");
+		}
+		
+	// save current outline image
+	//save(output + "/" + file  + "_Outline");
 	// add column
 	//setResult("file_name", row, file);
-    	selectImage(id); // activate original image
-    	roiManager("Show All with labels"); // overlay ROIs
-	roiManager("Deselect");
-	roiManager("Measure"); // measure on original image
+    	//selectImage(id); // activate original image
+    	//roiManager("Show All with labels"); // overlay ROIs
+	//roiManager("Deselect");
+	//roiManager("Measure"); // measure on original image
 	
 	// save ROIs for current image
-	roiManager("Deselect");
-	roiManager("Save", output+ "/" + file + "_ROI.zip"); // saves Rois zip file
-	roiManager("Deselect");
-	roiManager("Delete"); // clear ROI Manager for next image
+	//roiManager("Deselect");
+	//roiManager("Save", output+ "/" + file + "_ROI.zip"); // saves Rois zip file
+	//roiManager("Deselect");
+	//roiManager("Delete"); // clear ROI Manager for next image
 	close("*");
-	print(lineLength);
+	//print(lineLength);
+	//print(nResults);
 }
