@@ -4,8 +4,12 @@
 
 #@File(label = "Input directory", style = "directory") input
 #@File(label = "Output directory", style = "directory") output
+#@String(label = "Results Name") nameResults
 #@String(label = "File suffix", value = ".tif") suffix
+// minSize should be 0.05
 #@float(label = "Minimum size") minSize
+// maxSize should be 0.1
+#@float(label = "Maximum size") maxSize
 #@float(label = "Known Distance") knownDist
 #@String(label = "Unit of Known Distance") unit
 
@@ -21,7 +25,7 @@ function processFolder(input) {
 			processFile(input, output, list[i]);
 	}
 	//saves results for all images in a single file
-	saveAs("Results", output + "/All_Results.csv"); 
+	saveAs("Results", output + "/" + nameResults + ".csv"); 
 }
 
 function processFile(input, output, file) {
@@ -30,7 +34,7 @@ function processFile(input, output, file) {
 	//run("Bio-Formats", "open=[" + input + "/" + file +"] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
     	open(file);
     	file = File.nameWithoutExtension;
-   	run("8-bit");
+    	run("8-bit");
     	id = getImageID(); // get original image id
 	run("Duplicate...", " "); // duplicate original image and work on the copy
 	
@@ -50,9 +54,9 @@ function processFile(input, output, file) {
 	//save(output + "/Binary_OUTPUT_" + file);
 
 	x = nResults;
-	print(x);
+	//print(x);
 	//Before running Analyze Particles make sure Set Measurements has "Area" and "Display label" on
-	run("Analyze Particles...", "size=" + minSize + "-0.1 show=Outlines display exclude add");
+	run("Analyze Particles...", "size=" + minSize + "-" + maxSize + " show=Outlines display exclude add");
 
 	//Stop code if no values were retreived
 	if (x == nResults) {
@@ -71,7 +75,7 @@ function processFile(input, output, file) {
 	} else {
 		save(output + "/" + file  + "_Outline");
 		}
-		
+
 	// save current outline image
 	//save(output + "/" + file  + "_Outline");
 	// add column
@@ -87,6 +91,7 @@ function processFile(input, output, file) {
 	//roiManager("Deselect");
 	//roiManager("Delete"); // clear ROI Manager for next image
 	close("*");
-	//print(lineLength);
-	//print(nResults);
+	print(file);
+	print(lineLength);
+	print(nResults);
 }
