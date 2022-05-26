@@ -63,12 +63,25 @@ function processFile(input, output, file) {
 		close();
 		close();
 		/* 
-		 *  Run inverse if image makes backround be thresholded instead of eggs
+		 *  Run inverse if image makes background be thresholded instead of eggs
 		 *  Do it manually order:
 		 *  1) Draw line and set scale manually if image is too zoomed in
 		 *  2) Create rectangle with eggs and duplicate image; TAKE OFF "-2.jpg" IN DUPLICATE NAME
 		 *  3) Run Threshold image manually
+		 *  	3.5) Make sure the Thresholded image has the eggs as a different
+		 *  	color than the background
 		 *  4) Run Analyze Particles manually
+		 *  	4.5) Check to see if the outlined image saved and looks good
+		 *  5) Click OK
+		 *  
+		 *  If the outlined image doesn't look good, you shold delete the outline image and threshold
+		 *  again, this time making the eggs be the opposite color they were initially
+		 *  (if first appearing as white, now they should look black). Analyze particles
+		 *  again and make sure the outlined image looks okay. Click OK once checked.
+		 *  
+		 *  In some cases some values from the first manual Analyze Particle might be 
+		 *  saved onto the Results speadsheet, make a note of pictures you did manually and check both
+		 *  the pictures and the values in the spreadsheet at the end.
 		 */
 		waitForUser("Do it manually");
 		save(output + "/" + file  + "_Outline");
