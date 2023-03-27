@@ -32,7 +32,8 @@ function processFile(input, output, file) {
 	//setBatchMode(true); // prevents image windows from opening while the script is running
 	//open image using Bio-Formats; //Don't do this -Dariel
 	//run("Bio-Formats", "open=[" + input + "/" + file +"] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
-    	open(file);
+    	y = Table.size;
+	open(file);
     	file = File.nameWithoutExtension;
     	run("8-bit");
     	id = getImageID(); // get original image id
@@ -104,7 +105,8 @@ function processFile(input, output, file) {
 	//roiManager("Deselect");
 	//roiManager("Delete"); // clear ROI Manager for next image
 	close("*");
-	print(file);
-	print(lineLength);
-	print(nResults);
+	print("Line name is " + file);
+	print("Length in mm of millimeter paper is: " + lineLength);
+	print("Number of eggs in picture is " + nResults - y);
+	print("Total number of eggs in sheet is now " + nResults);
 }
